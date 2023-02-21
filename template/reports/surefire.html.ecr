@@ -1,0 +1,12 @@
+<% if (exception_message = @exception_message) && (exception_type = @exception_type) %>
+  <div class="has-text-weight-semibold is-size-5 has-text-danger mb-2">
+    Fehler <% HTML.escape(exception_type, io) %>
+  </div>
+  <div class="is-block"><pre><% HTML.escape(exception_message, io) %></pre></div>
+<% else %>
+  <div class="is-flex is-justify-content-center">
+    <span class="has-text-weight-semibold is-size-4 has-text-primary-dark is-centered">
+      Dieser Test war erfolgreich 🎉
+    </span>
+  </div>
+<% end %>

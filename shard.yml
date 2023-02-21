@@ -1,0 +1,11 @@
+name: divekit-report_visualizer
+version: 0.1.0
+
+authors:
+  - David Keller <davidkeller@tuta.io>
+
+targets:
+  divekit-rv:
+    main: src/app.cr
+
+crystal: 1.7.2
