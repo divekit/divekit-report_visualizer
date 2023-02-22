@@ -52,7 +52,7 @@ module App
 
     report_paths.each do |path|
       report_class = case ext = path.extension
-                     when ".xml" then Report::Surefire
+                     when ".xml"  then Report::Surefire
                      when ".json" then Report::Custom
                      else
                        raise ArgumentError.new("Invalid file extension for report: #{ext}")
@@ -82,14 +82,13 @@ module App
   #
   # FIXME: The macro currently uses shell commands to fetch the template. This is hacky and does not work on windows.
   def self.deploy(*,
-    output_path : Path,
-    reports_by_category : Hash(String, Array(Report)),
-    total_report_count : Int32,
-    successful_report_count : Int32,
-    commit_name : String,
-    commit_url : String?,
-    commit_tz : Time
-  )
+                  output_path : Path,
+                  reports_by_category : Hash(String, Array(Report)),
+                  total_report_count : Int32,
+                  successful_report_count : Int32,
+                  commit_name : String,
+                  commit_url : String?,
+                  commit_tz : Time)
     Dir.mkdir_p(output_path)
 
     {% begin %}
