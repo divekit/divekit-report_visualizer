@@ -26,32 +26,30 @@ require "json"
 #
 # WARNING: Using custom reports is discouraged outside of development phases as they are hard to translate or re-theme.
 class Report::Custom < Report
-  struct Document
-    include JSON::Serializable
+  include JSON::Serializable
 
-    @[JSON::Field]
-    property name : String
+  @[JSON::Field]
+  getter name : String
 
-    @[JSON::Field]
-    property category : String
+  @[JSON::Field]
+  getter category : String
 
-    @[JSON::Field]
-    property status : Status
+  @[JSON::Field]
+  getter status : Status
 
-    @[JSON::Field]
-    property content : String
-  end
+  @[JSON::Field]
+  getter content : String
 
   def self.is_candidate?(filename : String) : Bool
     filename.ends_with?(".custom-test.json")
   end
 
-  def self.from_path(path : Path) : Array(Report)
+  def self.from_path(path : Path) : Enumerable(Report)
     # Read and parse XML document, exit wih error message if it is invalid XML
     begin
       document = File.open(path) do |file|
-        reports = Array(Report::Custom::Document).from_json(file)
-        return reports.map { |report| Report::Custom.new(report.category, report.name, report.status, report.content).as(Report) }
+        reports = Array(Report::Custom).from_json(file)
+        return reports.map { |report| report.as(Report) }
       end
     rescue ex
       STDERR.puts "Could not read #{path}: #{ex.message}"
@@ -59,7 +57,6 @@ class Report::Custom < Report
     end
   end
 
-  def initialize(category : String, name : String, status : Status, @content : String)
-    super(category, name, status)
+  def initialize(@category : String, @name : String, @status : Status, @content : String)
   end
 end

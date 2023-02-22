@@ -2,7 +2,7 @@ require "ecr/macros"
 require "html"
 require "option_parser"
 
-require "./reports"
+require "./report"
 
 module App
   # Parses cli options and executes the visualization

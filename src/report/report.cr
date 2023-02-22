@@ -1,4 +1,16 @@
-# Class inherited by all reports parseable by the visualizer
+# Class inherited by all reports parseable by the visualizer.
+#
+# Each report subclass must define the following class methods:
+#
+# - `def self.is_candidate?(filename : String) : Bool`
+#
+#   This method checks if the file could be of this report type using the filename.
+#   This tool only uses the filenames to check which report subclass to use,
+#   and any ambiguous filenames cause the tool to immediately stop.
+#
+# - `def self.from_path(path : Path) : Enumerable(Report)`
+#
+#   This method should actually parse the report and return any amount of reports.
 abstract class Report
   # The report status.
   #
@@ -9,24 +21,21 @@ abstract class Report
     Failure
   end
 
-  def initialize(@category : String, @name : String, @status : Status)
-  end
-
   # The category this report is grouped in.
   #
   # The string should be below ~20 characters to prevent the sidebar from overflowing.
-  property category : String
+  abstract def category : String
 
   # The name displayed for this report.
   #
   # The string should be below ~20 characters to prevent the sidebar from overflowing.
-  property name : String
+  abstract def name : String
 
   # The status of this report.
   #
   # This will control the successful-test-count in the report header,
   # filtering options and an indicator next to the test in the sidebar.
-  property status : Status
+  abstract def status : Status
 
   # Abstract method to create an html-based visualization of the current report.
   abstract def to_html(io : IO) : Nil

@@ -1,12 +1,15 @@
 require "html"
 require "xml"
 
+# The Surefire report format.
+#
+# XML Schema: https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd
 class Report::Surefire < Report
   def self.is_candidate?(filename : String) : Bool
     filename.starts_with?("TEST-") && filename.ends_with?(".xml")
   end
 
-  def self.from_path(path : Path) : Array(Report)
+  def self.from_path(path : Path) : Enumerable(Report)
     # Read and parse XML document, exit wih error message if it is invalid XML
     begin
       document = File.open(path) do |file|
@@ -37,6 +40,8 @@ class Report::Surefire < Report
 
       exception_message : String? = nil
       exception_type : String? = nil
+
+      # TODO: Tests can also contain other error nodes, like <failure/>, <rerunFailure/>, <skipped/> or <system-out/>
       if error = test.xpath_node("./error")
         exception_message = error.inner_text
         exception_type = error["type"]
@@ -52,10 +57,12 @@ class Report::Surefire < Report
     end
   end
 
-  property exception_message : String?
-  property exception_type : String?
+  getter category : String
+  getter name : String
+  getter status : Status
+  getter exception_message : String?
+  getter exception_type : String?
 
-  def initialize(category : String, name : String, status : Status, @exception_message : String?, @exception_type : String?)
-    super(category, name, status)
+  def initialize(@category : String, @name : String, @status : Status, @exception_message : String?, @exception_type : String?)
   end
 end
