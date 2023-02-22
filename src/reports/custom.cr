@@ -23,6 +23,8 @@ require "json"
 #   }
 # ]
 # ```
+#
+# WARNING: Using custom reports is discouraged outside of development phases as they are hard to translate or re-theme.
 class Report::Custom < Report
   struct Document
     include JSON::Serializable
