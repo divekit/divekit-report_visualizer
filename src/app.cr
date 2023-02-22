@@ -79,8 +79,6 @@ module App
   # This method deploys the visualization.
   # Here, the output directory is created, all static files are copied and the ECR files are rendered.
   # This is done using macros so the `template` directory does not need to be shipped.
-  #
-  # FIXME: The macro currently uses shell commands to fetch the template. This is hacky and does not work on windows.
   def self.deploy(*,
                   output_path : Path,
                   reports_by_category : Hash(String, Array(Report)),
@@ -91,17 +89,16 @@ module App
                   commit_tz : Time)
     Dir.mkdir_p(output_path)
 
+    # Render all ECR files and copy all static files.
     {% begin %}
-      # Copy all static files.
-      {% for path in system("cd template && find . -type f -not -name \"*.ecr\" -maxdepth 1").lines %}
-        File.write(output_path / {{ path }}, {{ read_file("template/#{path.id}") }})
-      {% end %}
-
-      # Render all ECR files.
-      {% for path in system("cd template && find . -type f -name \"*.ecr\" -maxdepth 1").lines %}
-        File.open(output_path / {{ path[..-5] }}, "w") do |io|
-          ECR.embed({{ "template/#{path.id}" }}, io)
-        end
+      {% for file in run("./macros/list_files.cr", "template").lines %}
+        {% if file.ends_with?(".ecr") %}
+          File.open(output_path / {{ file[..-5] }}, "w") do |io|
+            ECR.embed({{ "template/#{file.id}" }}, io)
+          end
+        {% else %}
+          File.write(output_path / {{ file }}, {{ read_file("template/#{file.id}") }})
+        {% end %}
       {% end %}
     {% end %}
   end
