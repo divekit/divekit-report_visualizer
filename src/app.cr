@@ -43,6 +43,12 @@ module App
       end
     end
 
+    if report_paths.empty?
+      STDERR.puts "ERROR: At least one report is required."
+      STDERR.puts parser
+      exit(1)
+    end
+
     # From this point onwards, all options have been parsed and evaluated.
     # Now the reports can be parsed.
 
