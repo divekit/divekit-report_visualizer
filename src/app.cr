@@ -55,18 +55,16 @@ module App
     reports = [] of Report
     total_report_count = 0
     successful_report_count = 0
-
     report_paths.each do |path|
-      report_class = case ext = path.extension
-                     when ".xml"  then Report::Surefire
-                     when ".json" then Report::Custom
-                     else
-                       raise ArgumentError.new("Invalid file extension for report: #{ext}")
-                     end
-      report_class.from_path(path).each do |report|
-        reports << report
-        total_report_count += 1
-        successful_report_count += 1 if report.status.success?
+      begin
+        parse_reports(path).each do |report|
+          reports << report
+          total_report_count += 1
+          successful_report_count += 1 if report.status.success?
+        end
+      rescue ex
+        STDERR.puts "ERROR: #{ex.message}"
+        exit(1)
       end
     end
 
@@ -80,6 +78,37 @@ module App
       commit_url: commit_url,
       commit_tz: commit_tz
     )
+  end
+
+  # This method parses the report from the given paths and returns an array of parsed reports.
+  #
+  # The method matches the report type using its filename.
+  def self.parse_reports(path : Path) : Array(Report)
+    # For each `Report` subclass the `.is_candidate?` method is executed.
+    # This method checks if the filepath implies it could possibly be this type of report.
+    # For example, a surefire report starts with "TEST-" and ends with ".xml".
+    #
+    # If no report subclass matches the filename, it is an invalid report.
+    # If multiple report subclasses match the filename,
+    # the report visualizer has multiple reports which are incompatible.
+    # In both cases, the tool immediately stops executing.
+
+    candidate_count = 0
+    last_candidate : Report.class | Nil = nil
+
+    {% begin %}
+      {% for type in Report.subclasses %}
+        if {{type}}.is_candidate?(path.basename)
+          candidate_count += 1
+          last_candidate = {{type}}
+        end
+      {% end %}
+    {% end %}
+
+    raise ArgumentError.new("Could not find a candidate for report \"#{path}\"") unless last_candidate
+    raise ArgumentError.new("Ambiguous report \"#{path}\" has multiple candidates") if candidate_count > 1
+
+    last_candidate.from_path(path)
   end
 
   # This method deploys the visualization.

@@ -42,12 +42,16 @@ class Report::Custom < Report
     property content : String
   end
 
-  def self.from_path(path) : Array(Report::Custom)
+  def self.is_candidate?(filename : String) : Bool
+    filename.ends_with?(".custom-test.json")
+  end
+
+  def self.from_path(path : Path) : Array(Report)
     # Read and parse XML document, exit wih error message if it is invalid XML
     begin
       document = File.open(path) do |file|
         reports = Array(Report::Custom::Document).from_json(file)
-        return reports.map { |report| Report::Custom.new(report.category, report.name, report.status, report.content) }
+        return reports.map { |report| Report::Custom.new(report.category, report.name, report.status, report.content).as(Report) }
       end
     rescue ex
       STDERR.puts "Could not read #{path}: #{ex.message}"

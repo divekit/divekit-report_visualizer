@@ -2,7 +2,11 @@ require "html"
 require "xml"
 
 class Report::Surefire < Report
-  def self.from_path(path) : Array(Report::Surefire)
+  def self.is_candidate?(filename : String) : Bool
+    filename.starts_with?("TEST-") && filename.ends_with?(".xml")
+  end
+
+  def self.from_path(path : Path) : Array(Report)
     # Read and parse XML document, exit wih error message if it is invalid XML
     begin
       document = File.open(path) do |file|
@@ -44,7 +48,7 @@ class Report::Surefire < Report
         status: error ? Status::Failure : Status::Success,
         exception_message: exception_message,
         exception_type: exception_type,
-      )
+      ).as(Report)
     end
   end
 
