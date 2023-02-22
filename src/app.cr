@@ -51,7 +51,13 @@ module App
     successful_report_count = 0
 
     report_paths.each do |path|
-      Report::Surefire.from_path(path).each do |report|
+      report_class = case ext = path.extension
+                     when ".xml" then Report::Surefire
+                     when ".json" then Report::Custom
+                     else
+                       raise ArgumentError.new("Invalid file extension for report: #{ext}")
+                     end
+      report_class.from_path(path).each do |report|
         reports << report
         total_report_count += 1
         successful_report_count += 1 if report.status.success?
