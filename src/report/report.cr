@@ -17,8 +17,17 @@ abstract class Report
   # Currently, there are only two possible values `Success` and `Failed`.
   # Maybe in the future other values could be added in cases where partial progress can be evaluated.
   enum Status
+    # A status stating a test is currently correct.
     Success
+
+    # A status stating a test is currently errorneous.
     Failure
+
+    # An errorneous status which cannot be recovered from.
+    #
+    # For example, a fraud attempt could be given this status.
+    # The student is informed that the test cannot be corrected.
+    Fatal
   end
 
   # The category this report is grouped in.
