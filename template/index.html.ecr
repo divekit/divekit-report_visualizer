@@ -57,10 +57,14 @@
         --link-checked-hover-bg: rgba(0,0,0,0.104);
         --link-checked-active-bg: rgba(0,0,0,0.152);
         
-        --success: #26A269;
-        --warn: #bd8a13;
-        --danger: #C01C28;
-        --accent: #1C71D8;
+        --success-text: #26A269;
+        --warn-text: #bd8a13;
+        --danger-text: #C01C28;
+        --accent-text: #1C71D8;
+        --success-bg: #2ec27e;
+        --warn-bg: #e5a50a;
+        --danger-bg: #e01b24;
+        --accent-bg: #3584e4;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -88,10 +92,14 @@
           --link-checked-hover-bg: rgba(255,255,255,0.13);
           --link-checked-active-bg: rgba(255,255,255,0.19);
           
-          --success: #8ff0a4;
-          --warn: #cd9309;
-          --danger: #ff7b63;
-          --accent: #78aeed;
+          --success-text: #8ff0a4;
+          --warn-text: #f8e45c;
+          --danger-text: #ff7b63;
+          --accent-text: #78aeed;
+          --success-bg: #26a269;
+          --warn-bg: #cd9309;
+          --danger-bg: #c01c28;
+          --accent-bg: #3584e4;
         }
       }
 
@@ -104,7 +112,7 @@
 
       a {
         text-decoration: none;
-        color: var(--accent);
+        color: var(--accent-text);
       }
 
       pre {
@@ -130,19 +138,19 @@
       }
 
       .text-success {
-        color: var(--success);
+        color: var(--success-text);
       }
 
       .text-warn {
-        color: var(--warn);
+        color: var(--warn-text);
       }
 
       .text-danger {
-        color: var(--danger);
+        color: var(--danger-text);
       }
 
       .text-accent {
-        color: var(--accent);
+        color: var(--accent-text);
       }
 
       .text-dimmed {
@@ -316,6 +324,10 @@
         user-select: none;
       }
 
+      nav input {
+        margin-right: 4px;
+      }
+
       nav > div {
         flex-direction: column;
         height: 100%;
@@ -394,11 +406,11 @@
         height: 10px;
         border-radius: 50%;
         margin: 0 8px 1px 4px;
-        background:	hsl(348, 100%, 61%);
+        background:	var(--danger-bg);
       }
 
       nav a.is-success:before {
-        background:	hsl(141, 71%, 48%);
+        background:	var(--success-bg);
       }
 
       @media only screen and (max-width: 800px) {
@@ -472,7 +484,7 @@
         <nav>
           <div>
             <input type="checkbox" role="show-all-toggle" id="show-all-tests" flow-id="show-all-tests" checked/>
-            <label for="show-all-tests" class="no-text-selection">Zeige erfolgreiche Tests</label>
+            <label for="show-all-tests">Zeige erfolgreiche Tests</label>
             <hr/>
 
             <% reports_by_category.each do |category, category_reports| %>
