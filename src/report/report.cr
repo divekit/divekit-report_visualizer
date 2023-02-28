@@ -53,7 +53,7 @@ abstract class Report
   # It is used to automatically define the `to_html` method.
   private macro inherited
     def to_html(io : IO) : Nil
-      ECR.embed(\{{ "./template/reports/#{__FILE__[(__DIR__.size + 1)..-4].id}.html.ecr" }}, io)
+      ECR.embed(\{{ "./template/reports/#{__FILE__[(__DIR__.size + 1)..-4].id}.html.min.ecr" }}, io)
     end
   end
 end

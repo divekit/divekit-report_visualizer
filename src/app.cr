@@ -53,14 +53,10 @@ module App
     # Now the reports can be parsed.
 
     reports = [] of Report
-    total_report_count = 0
-    successful_report_count = 0
     report_paths.each do |path|
       begin
         parse_reports(path).each do |report|
           reports << report
-          total_report_count += 1
-          successful_report_count += 1 if report.status.success?
         end
       rescue ex
         STDERR.puts "ERROR: #{ex.message}"
@@ -72,8 +68,7 @@ module App
     deploy(
       output_path: Path[output_path],
       reports_by_category: reports.group_by { |report| report.category },
-      total_report_count: total_report_count,
-      successful_report_count: successful_report_count,
+      reports: reports,
       commit_name: commit,
       commit_url: commit_url,
       commit_tz: commit_tz
@@ -117,8 +112,7 @@ module App
   def self.deploy(*,
                   output_path : Path,
                   reports_by_category : Hash(String, Array(Report)),
-                  total_report_count : Int32,
-                  successful_report_count : Int32,
+                  reports : Array(Report),
                   commit_name : String,
                   commit_url : String?,
                   commit_tz : Time)
@@ -128,10 +122,12 @@ module App
     {% begin %}
       {% for file in run("./macros/list_files.cr", "template").lines %}
         {% if file.ends_with?(".ecr") %}
-          File.open(output_path / {{ file[..-5] }}, "w") do |io|
-            ECR.embed({{ "template/#{file.id}" }}, io)
-          end
-        {% else %}
+          {% if file.ends_with?(".min.ecr") %}
+            File.open(output_path / {{ file[..-9] }}, "w") do |io|
+              ECR.embed({{ "template/#{file.id}" }}, io)
+            end
+          {% end %}
+        {% elsif !file.ends_with?(".ignore") %}
           File.write(output_path / {{ file }}, {{ read_file("template/#{file.id}") }})
         {% end %}
       {% end %}

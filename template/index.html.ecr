@@ -1,230 +1,540 @@
+<%
+  # Calculate variables we need for the template,
+  # but which are too template-specific to be added to the main program.
+
+  is_fatal = false
+  success_count = 0
+  default = nil
+
+  reports.each do |tmp|
+    status = tmp.status
+    unless status.success?
+      default ||= tmp
+    end
+
+    case status
+    when .fatal? then is_fatal = true
+    when .success? then success_count += 1
+    end
+  end
+
+  default ||= reports.first?
+%>
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Divekit Report</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+      /* Normalize */
+
+      html,body,p,ol,ul,li,dl,dt,dd,blockquote,figure,fieldset,legend,textarea,pre,hr,h1,h2,h3,h4,h5,h6{margin:0;padding:0}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}ul{list-style:none}button,input,select{margin:0}html{box-sizing:border-box}*,*::before,*::after{box-sizing:inherit}img{height:auto;max-width:100%}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}
+
+      /* Colors (light- and dark-mode) */
+
+      :root {
+        --bg-view: #FFFFFF;
+        --bg-content: #F6F6F6;
+        --border: #CCC;
+        --text: #4a4a4a;
+        --text-dimmed: #606060;
+        --shadow: rgba(100, 100, 111, 0.3);
+
+        --button-fg: rgba(0,0,0,0.8);
+        --button-bg: rgba(0,0,0,0.08);
+        --button-hover-bg: rgba(0,0,0,0.12);
+        --button-active-bg: rgba(0,0,0,0.24);
+        --button-checked-bg: rgba(0,0,0,0.24);
+        --button-checked-hover-bg: rgba(0,0,0,0.28);
+        --button-checked-active-bg: rgba(0,0,0,0.32);
+
+        --link-fg: rgba(0,0,0,0.8);
+        --link-bg: rgba(0,0,0,0);
+        --link-hover-bg: rgba(0,0,0,0.056);
+        --link-active-bg: rgba(0,0,0,0.128);
+        --link-checked-bg: rgba(0,0,0,0.08);
+        --link-checked-hover-bg: rgba(0,0,0,0.104);
+        --link-checked-active-bg: rgba(0,0,0,0.152);
+        
+        --success: #26A269;
+        --warn: #bd8a13;
+        --danger: #C01C28;
+        --accent: #1C71D8;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-view: #242424;
+          --bg-content: rgb(48,48,48);
+          --border: #404040;
+          --text: #eee;
+          --text-dimmed: #bbb;
+          --shadow: rgba(0, 0, 0, 0.36);
+
+          --button-fg: #fff;
+          --button-bg: rgba(255,255,255,0.1);
+          --button-hover-bg: rgba(255,255,255,0.15);
+          --button-active-bg: rgba(255,255,255,0.3);
+          --button-checked-bg: rgba(255,255,255,0.3);
+          --button-checked-hover-bg: rgba(255,255,255,0.35);
+          --button-checked-active-bg: rgba(255,255,255,0.4);
+
+          --link-fg: #fff;
+          --link-bg: rgba(255,255,255,0);
+          --link-hover-bg: rgba(255,255,255,0.07);
+          --link-active-bg: rgba(255,255,255,0.16);
+          --link-checked-bg: rgba(255,255,255,0.1);
+          --link-checked-hover-bg: rgba(255,255,255,0.13);
+          --link-checked-active-bg: rgba(255,255,255,0.19);
+          
+          --success: #8ff0a4;
+          --warn: #cd9309;
+          --danger: #ff7b63;
+          --accent: #78aeed;
+        }
+      }
+
+      /* Generic Classes */
+
+      body, button, input, optgroup, select, textarea {
+        font-family: BlinkMacSystemFont,-apple-system,"Segoe UI",Cantarell,Roboto,Oxygen,Ubuntu,"Fira Sans","Droid Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: var(--text);
+      }
+
+      a {
+        text-decoration: none;
+        color: var(--accent);
+      }
+
+      pre {
+        background: var(--bg-content);
+        overflow: auto;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 1.125em;
+        line-height: 1.5;
+      }
+
+      .title {
+        font-size: 32px;
+        font-weight: 600;
+        margin: 10px 0 4px 0;
+      }
+
+      .subtitle {
+        font-size: 20px;
+        font-weight: 500;
+        height: 24px;
+        margin: 4px 0 4px 0;
+      }
+
+      .text-success {
+        color: var(--success);
+      }
+
+      .text-warn {
+        color: var(--warn);
+      }
+
+      .text-danger {
+        color: var(--danger);
+      }
+
+      .text-accent {
+        color: var(--accent);
+      }
+
+      .text-dimmed {
+        color: var(--text-dimmed);
+      }
+
+      .wrapper {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        flex-grow: 1;
+      }
+
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        height: 100%;
+      }
+
+      .container.-vertical {
+        flex-direction: column;
+      }
+
+      .container.-center {
+        align-items: center;
+      }
+
+      .container > * {
+        max-width: 1200px !important;
+      }
+
+      body {
+        background: var(--bg-view);
+      }
+
+      /* Header */
+
+      header {
+        z-index: 3;
+        background: var(--bg-content);
+      }
+
+      header .container {
+        padding: min(3rem, calc(5vw));
+      }
+
+      header .wrapper {
+        align-items: center;
+      }
+
+      .header-left {
+        flex-grow: 1;
+      }
+
+      header img {
+        flex: none;
+        width: 96px;
+        height: 96px;
+      }
+
+      #collapse-menu {
+        display: none;
+      }
+
+      @media only screen and (max-width: 800px) {
+        header img {
+          display: none;
+        }
+
+        header {
+          padding-bottom: 16px;
+        }
+
+        #collapse-menu {
+          display: inline;
+          left: 32px;
+          margin-top: -32px;
+          position: relative;
+          z-index: 4;
+          background: var(--button-bg);
+          border-radius: 16px 16px 0 0;
+          height: 32px;
+          padding: 8px;
+          transition: all .1s;
+          appearance: none;
+          color: var(--button-fg);
+          font-weight: 600;
+        }
+
+        #collapse-menu:hover {
+          background: var(--button-hover-bg);
+        }
+
+        #collapse-menu:active {
+          background: var(--button-active-bg);
+        }
+
+        #collapse-menu:checked {
+          background: var(--button-checked-bg);
+        }
+
+        #collapse-menu:checked:hover {
+          background: var(--button-checked-hover-bg);
+        }
+
+        #collapse-menu:checked:active {
+          background: var(--button-checked-active-bg);
+        }
+
+        #collapse-menu:not(:checked)::after {
+          content: "Zeige Menü";
+        }
+
+        #collapse-menu:checked::after {
+          content: "Verstecke Menü";
+        }
+      }
+
+      /* Main content, Routing without javascript */
+
+      main {
+        flex-grow: 1;
+        overflow: auto;
+        padding: 1rem;
+      }
+
+      main > article {
+        display: none;
+      }
+
+      main > article.fallback {
+        display: block;
+      }
+
+      main > article:target {
+        display: block;
+      }
+
+      main > article:target ~ .fallback {
+        display: none;
+      }
+
+      /* main layout */
+
+      body {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        overflow: hidden;
+      }
+
+      body > div, body > header {
+        flex-grow: 1;
+        width: 100%;
+      }
+
+      body > div {
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Sidebar */
+
+      nav {
+        height: 100%;
+        flex-shrink: 0;
+        visibility: visible;
+        z-index: 2;
+        user-select: none;
+      }
+
+      nav > div {
+        flex-direction: column;
+        height: 100%;
+        transition: all .1s;
+        background: var(--bg-view);
+        padding: 1rem 1rem;
+        width: 300px;
+        border-right: 1px solid var(--border);
+        overflow: auto;
+      }
+
+      nav > div > hr, nav > div > a {
+        display: block;
+      }
+
+      nav hr {
+        margin: 24px 0;
+        border: 1px solid var(--border);
+      }
+
+      nav h2 {
+        margin-top: 12px;
+      }
+
+      nav a {
+        overflow: hidden;
+        white-space: nowrap;
+        display: block;
+        padding: 8px 8px;
+        text-align: left;
+        color: var(--link-fg);
+        background: var(--link-bg);
+        border-radius: 6px;
+        margin: 2px;
+        transition: all .05s;
+      }
+
+      @supports selector(a:local-link) {
+        nav a:local-link {        
+          background: var(--link-checked-bg);
+        }
+
+        nav a:local-link:hover {
+          background: var(--link-checked-hover-bg);
+        }
+
+        nav a:local-link:active {
+          background: var(--link-checked-active-bg);
+        }
+      }
+
+      nav a.local-link {        
+        background: var(--link-checked-bg);
+      }
+
+      nav a.local-link:hover {
+        background: var(--link-checked-hover-bg);
+      }
+
+      nav a.local-link:active {
+        background: var(--link-checked-active-bg);
+      }
+
+      nav a:hover {
+        background: var(--link-hover-bg);
+      }
+
+      nav a:active {
+        background: var(--link-active-bg);
+      }
+
+      nav a:before {
+        content: '';
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin: 0 8px 1px 4px;
+        background:	hsl(348, 100%, 61%);
+      }
+
+      nav a.is-success:before {
+        background:	hsl(141, 71%, 48%);
+      }
+
+      @media only screen and (max-width: 800px) {
+        nav {
+          width: 0;
+        }
+
+        nav > div {
+          position: absolute;
+          box-shadow: var(--shadow) 0px 7px 29px 0px;
+        }
+
+        #collapse-menu:not(:checked) + .container nav > div {
+          transform: translateX(-100%);
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+      }
+
+      #show-all-tests ~ .is-success, #show-all-tests ~ .text-success {
+        display: none;
+      }
+
+      #show-all-tests:checked ~ .is-success, #show-all-tests:checked ~ .text-success {
+        display: block;
+      }
+    </style>
   </head>
   <body>
-    <!-- Erste Sektion: Zusammenfassende Informationen, welche den gesamten Report betreffen -->
-    <section class="hero has-background-white-ter">
-      <div class="hero-body">
-        <div class="container">
-          <div class="columns is-1">
-            <div class="column">
-              <p class="is-size-6 mb-2 has-text-grey">
-                <!-- Die hier angezeigte Zeit sollte optimalerweise der Commit-Zeit entsprechen und nicht der Generierungs-Zeit -->
-                Report vom <%= commit_tz.to_s("%d.%m.%Y um %R (%^Z)") %>, <span>Commit <a href="<%= commit_url %>"><% HTML.escape(commit_name, io) %></a></span>
-              </p>
+    <header>
+      <div class="container">
+        <div class="wrapper">
+          <div class="header-left">
+            <p class="text-dimmed">
+              <!-- Die hier angezeigte Zeit sollte optimalerweise der Commit-Zeit entsprechen und nicht der Generierungs-Zeit -->
+              Report vom <time datetime="<%= commit_tz.to_rfc3339 %>"><%= commit_tz.to_s("%d.%m.%Y um %R (%^Z)") %></time>, <span>Commit&nbsp;<a href="<%= commit_url %>"><% HTML.escape(commit_name, io) %></a></span>
+            </p>
 
-              <% if successful_report_count == total_report_count %>
-                <h1 class="title has-text-success">
-                  Alle Tests sind gelungen
-                </h1>
-              <% elsif successful_report_count == 0 %>
-                <h1 class="title has-text-danger">
-                  Alle Tests sind fehlgeschlagen
-                </h1>
-              <% else %>
-                <h1 class="title" style="color: hsl(48, 100%, 35%)">
-                  Einige Tests sind fehlgeschlagen
-                </h1>
-              <% end %>
-
-              <p class="subtitle">
-                <strong><%= successful_report_count %>/<%= total_report_count %></strong> Tests erfolgreich
+            <% if is_fatal %>
+              <p class="title text-danger">
+                Praktikum endgültig nicht bestanden
               </p>
-            </div>
-            <div class="column is-narrow is-hidden-mobile">
-              <figure class="image is-96x96">
-                <img loading="lazy" src="./logo.svg">
-              </figure>
-            </div>
+            <% elsif success_count == reports.size %>
+              <p class="title text-success">
+                Alle Tests sind gelungen
+              </p>
+            <% elsif success_count == 0 %>
+              <p class="title text-danger">
+                Alle Tests sind fehlgeschlagen
+              </p>
+            <% else %>
+              <p class="title text-warn">
+                Einige Tests sind fehlgeschlagen
+              </p>
+            <% end %>
+
+            <p class="subtitle">
+              <b><%= success_count %>/<%= reports.size %></b> Tests erfolgreich
+            </p>
           </div>
+
+          <img loading="lazy" src="./logo.svg">
         </div>
       </div>
-    </section>
+    </header>
 
-    <section class="section">
-      <div class="container">
-        <div class="columns is-1 is-flex-direction-row-reverse">
-          <aside class="menu column is-narrow">
+    <input type="checkbox" role="show-all-toggle" id="collapse-menu" flow-id="show-all-tests"/>
+    <div class="container">
+      <div class="wrapper">
+        <nav>
+          <div>
             <input type="checkbox" role="show-all-toggle" id="show-all-tests" flow-id="show-all-tests" checked/>
             <label for="show-all-tests" class="no-text-selection">Zeige erfolgreiche Tests</label>
             <hr/>
 
-            <div class="report-selection">
-              <% reports_by_category.each do |category, reports| %>
-                <%
-                  successful_reports = reports.count { |report| report.status.success? }
-                  category_class = case successful_reports
-                                   when 0 then ""
-                                   when reports.size then "is-success"
-                                   else "is-mixed"
-                                   end
-                %>
-                <h2 class="is-size-6 <%= category_class %> has-text-weight-medium mt-2"><% HTML.escape(category, io) %></h2>
-                <% reports.each do |report| %>
-                  <label class="report-item <%= "is-success" if report.status.success? %> no-text-selection">
-                    <input type="radio" name="report-selector" value="<% HTML.escape(report.name, io) %>" checked/>
-                    <% HTML.escape(report.name, io) %>
-                  </label>
-                <% end %>
-              <% end %>
-            </div>
-          </aside>
+            <% reports_by_category.each do |category, category_reports| %>
+              <%
+                successful_reports = category_reports.count { |report| report.status.success? }
+                category_class = case successful_reports
+                                when 0 then "text-danger"
+                                when category_reports.size then "text-success"
+                                else "text-warn"
+                                end
+              %>
 
-          <div class="column" style="overflow: hidden;">
-            <% reports_by_category.each do |category, reports| %>
-              <% reports.each do |report| %>
-                <div class="report" id="report-<% HTML.escape(report.name, io) %>">
-                  <% report.to_html(io) %>
-                </div>
+              <h2 class="<%= category_class %>"><% HTML.escape(category, io) %></h2>
+              <% category_reports.each do |report| %>
+                <a href="#report-<% HTML.escape(report.name, io) %>" <%= "class=\"is-success\"" if report.status.success? %>><% HTML.escape(report.name, io) %></a>
               <% end %>
             <% end %>
           </div>
-        </div>
+        </nav>
+
+        <main>
+          <% reports.each do |report| %>
+            <article id="report-<% HTML.escape(report.name, io) %>" <%= "class=\"default\"" if default.same?(report) %>>
+              <% report.to_html(io) %>
+            </article>
+          <% end %>
+          <article class="fallback">
+            <noscript>
+              <div class="container -vertical -center">
+                <div class="subtitle text-accent">
+                  <b>Bitte wähle einen Test aus 🖱️</b>
+                </div>
+                <div>Ohne JavaScript wird dies nicht automatisch ausgeführt!</div>
+              </div>
+            </noscript>
+          </article>
+        </main>
       </div>
-    </section>
+    </div>
   </body>
-
-  <style>
-    .no-text-selection {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    .menu {
-      min-width: 300px;
-      border-left: 2px solid #ccc;
-    }
-
-    .report {
-      display: none;
-    }
-
-    /*
-     * Test Selection -> Test Button background
-     */
-
-    .report-item {
-      cursor: pointer;
-      overflow: hidden;
-      white-space: nowrap;
-      display: block;
-      padding: 4px 8px;
-      text-align: left;
-    }
-
-     .report-item:hover {
-      background-color: hsl(0, 0%, 96%);
-    }
-
-    .report-item:has(> input:checked) {
-      background-color: hsl(0, 0%, 92%);
-    }
-
-    /*
-     * Test Selection -> Hide successful tests if checkbox unchecked.
-     */
-
-    #show-all-tests[type="checkbox"] ~ .report-selection > .is-success {
-      display: none;
-    }
-
-    #show-all-tests[type="checkbox"]:checked ~ .report-selection > .is-success {
-      display: block;
-    }
-
-    /*
-     * Test Selection -> Circle
-     */
-
-    .report-item > input {
-      position: absolute;
-      opacity: 0;
-      cursor: pointer;
-      height: 0;
-      width: 0;
-    }
-
-    .report-item:before {
-      content: '';
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 8px;
-      background:	hsl(348, 100%, 61%);
-      transform: translateY(-0.075em);
-    }
-
-    .report-item.is-success:before {
-      background:	hsl(141, 71%, 48%);
-    }
-
-    /*
-     * Test Selection -> Section Titles
-     */
-
-    .report-selection > h2 {
-      color:	hsl(348, 100%, 61%);
-    }
-
-    .report-selection > h2.is-mixed {
-      color:	hsl(48, 100%, 35%);
-    }
-
-    .report-selection > h2.is-success {
-      color:	hsl(141, 71%, 48%);
-    }
-
-    pre {
-      overflow: scroll;
-      max-width: 100%;
-    }
-
-    .line {
-      white-space: pre;
-      display: block;
-      padding: 0 16px;
-    }
-
-    .line.highlight {
-      background-color: #aaa;
-      animation: line-highlight 750ms linear;
-    }
-  </style>
-
   <script>
-    let reportSelectors = document.getElementsByName('report-selector');
-    let reports = document.getElementsByName('report');
-    let shownReport = null;
-
-    for (let i = 0; i < reportSelectors.length; i += 1) {
-      reportSelectors[i].addEventListener('click', updateContent);
-    }
-
-    function updateContent() {
-      let selectedValue = null;
-      for (let i = 0; i < reportSelectors.length; i += 1) {
-        if (reportSelectors[i].checked) {
-          selectedValue = reportSelectors[i].value;
-          break;
-        }
+    // Setup link highlighting
+    let currentSelection = null;
+    function updateLinkLocal() {
+      if(currentSelection !== null) {
+        currentSelection.classList.remove("local-link");
       }
-      if (shownReport !== null) {
-        shownReport.style.display = null;
-      }
-      shownReport = document.getElementById('report-' + selectedValue);
-      if (shownReport !== null) {
-        shownReport.style.display = "block";
+      let anchors = document.querySelectorAll("nav a[href='" + window.location.hash + "']");
+      if (anchors.length === 1) {
+        currentSelection = anchors[0];
+        currentSelection.classList.add("local-link");
       }
     }
+    window.addEventListener('hashchange', updateLinkLocal, false);
+    updateLinkLocal();
 
-    updateContent();
+    // Go to default
+    (() => {
+      let hash = window.location.hash;
+      if(hash === "" || hash === "#") {
+        window.location.hash = document.getElementsByClassName("default")[0].id;
+      }
+    })();
   </script>
 </html>
