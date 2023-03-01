@@ -11,6 +11,11 @@ Just execute the following command:
 shards build --release --production
 ```
 
+Optionally, you can add the `-Dno_minify` compile-time flag to prevent minifying the output:
+```bash
+shards build --release --production --Dno_minify
+```
+
 ## Usage
 
 ```

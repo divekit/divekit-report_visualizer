@@ -51,11 +51,14 @@ abstract class Report
 
   # This macro is run for every subclass of `Report`.
   # It is used to automatically define the `to_html` method.
-  private macro inherited
-    def to_html(io : IO) : Nil
-      ECR.embed(\{{ "./template/reports/#{__FILE__[(__DIR__.size + 1)..-4].id}.html.min.ecr" }}, io)
+  {% begin %}
+    {% file_extension = flag?("no_minify") ? ".ecr" : ".min.ecr" %}
+    private macro inherited
+      def to_html(io : IO) : Nil
+        ECR.embed(\\{{ "./template/reports/#{__FILE__[(__DIR__.size + 1)..-4].id}.html#{{{file_extension}}}" }}, io)
+      end
     end
-  end
+  {% end %}
 end
 
 require "./*"

@@ -120,10 +120,11 @@ module App
 
     # Render all ECR files and copy all static files.
     {% begin %}
+      {% ecr_file_extension_size = flag?("no_minify") ? 5 : 9 %}
       {% for file in run("./macros/list_files.cr", "template").lines %}
         {% if file.ends_with?(".ecr") %}
-          {% if file.ends_with?(".min.ecr") %}
-            File.open(output_path / {{ file[..-9] }}, "w") do |io|
+          {% unless flag?("no_minify") == file.ends_with?(".min.ecr") %}
+            File.open(output_path / {{ file[..-ecr_file_extension_size] }}, "w") do |io|
               ECR.embed({{ "template/#{file.id}" }}, io)
             end
           {% end %}
