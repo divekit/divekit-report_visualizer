@@ -33,7 +33,8 @@ class Report::PMD < Report
   option "--category=NAME", "Specifies the category the PMD report is put in (default: \"PMD\")" do |name|
     @@category = name
   end
-  option "--split_rules=RULE1,RULE2,...", "Splits this report into one report for each specified rule" do |rules|
+  option "--split_rules=RULE,RULE:Name...",
+    "Splits this file into one report for each specified rule (supports custom names using colon)" do |rules|
     @@split_rules = rules
   end
 
@@ -48,7 +49,10 @@ class Report::PMD < Report
           rules = {} of String => Report::PMD
 
           split_rules.split(',') do |rule|
-            rules[rule] = Report::PMD.new(category: category, name: rule, files: [] of ReportFile)
+            rule_parts = rule.split(':', 2)
+            rule_name = (rule_parts.size == 2) ? rule_parts[1] : rule_parts[0]
+
+            rules[rule_parts[0]] = Report::PMD.new(category: category, name: rule_name, files: [] of ReportFile)
           end
 
           document.files.each do |file|
