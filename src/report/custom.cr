@@ -39,9 +39,7 @@ class Report::Custom < Report
   @[JSON::Field]
   getter content : String
 
-  def self.is_candidate?(filename : String) : Bool
-    filename.ends_with?(".custom-test.json")
-  end
+  pattern "*.custom-test.json"
 
   def self.from_path(path : Path) : Enumerable(Report)
     # Read and parse XML document, exit wih error message if it is invalid XML

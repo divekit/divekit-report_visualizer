@@ -1,84 +1,79 @@
 require "ecr/macros"
 require "html"
-require "option_parser"
-
+require "./util/*"
 require "./report"
 
 module App
+  extend CLI::Context
+
+  VERSION = "0.1.0"
+
+  @@read_context = false
+
+  @@commit : String = "local"
+  @@commit_url : String? = nil
+  @@commit_tz : Time = Time.local
+  @@output_path : String = "public"
+  @@reports = [] of Report
+
+  header <<-TXT
+  Divekit Report Visualizer v#{VERSION}
+  Usage: divekit-rv [global arguments] <report-path> [report arguments] <report-path> [report arguments] ...
+
+  Global arguments (affects whole program instead of just one file):
+  TXT
+
+  option "-c HASH", "--commit=HASH", "Specifies the displayed commit hash (default: \"local\")" { |hash| @@commit = hash }
+  option "-u URI", "--commit_url=URI", "Specifies the link to the current commit (default: none)" { |url| @@commit_url = url }
+  option "-o PATH", "--output=PATH", "Specifies the path to deploy to (default: \"public\")" { |path| @@output_path = path }
+  option "-t TIME", "--commit_time=TIME",
+         "Specifies the timestamp of the current commit, in ISO 8601 format (default: current local time)" do |time|
+    @@commit_tz = Time.parse_iso8601(time)
+  end
+  option "-h", "--help", "Show this help"
+
+  {% begin %}
+    footer "{% for type in Report.subclasses %}\n\n#{{{type}}.cli_usage}{% end %}\n"
+  {% end %}
+
   # Parses cli options and executes the visualization
   def self.run(argv = ARGV)
-    commit : String = "local"
-    commit_url : String? = nil
-    commit_tz : Time = Time.local
-    output_path : String = "public"
-    report_paths = [] of Path
+    CLI.parse(
+      default_context: App.as(CLI::Context),
+      find_context_callback: ->find_report_type(String),
+      context_finished_callback: ->context_finished_callback(CLI::Context, String)
+    )
 
-    parser = OptionParser.parse(argv) do |parser|
-      parser.banner = "Usage: divekit-rv [arguments] <report-path> <report-path>..."
-      parser.on("-c HASH", "--commit=HASH", "Specifies the displayed commit hash (default: \"local\")") { |hash| commit = hash }
-      parser.on("-u URI", "--commit-url=URI", "Specifies the link to the current commit (default: none)") { |url| commit_url = url }
-      parser.on("-t TIME", "--commit-time=TIME", "Specifies the timestamp of the current commit, in ISO 8601 format (default: current local time)") { |time| commit_tz = Time.parse_iso8601(time) }
-      parser.on("-o PATH", "--output=PATH", "Specifies the path to deploy to (default: \"public\")") { |path| output_path = path }
-      parser.on("-h", "--help", "Show this help") do
-        puts parser
-        exit
-      end
-
-      parser.unknown_args do |options, _|
-        options.each do |option|
-          report_paths << Path[option]
-        end
-      end
-
-      parser.invalid_option do |flag|
-        STDERR.puts "ERROR: #{flag} is not a valid option."
-        STDERR.puts parser
-        exit(1)
-      end
-
-      parser.missing_option do |flag|
-        STDERR.puts "ERROR: #{flag} requires a value."
-        STDERR.puts parser
-        exit(1)
-      end
-    end
-
-    if report_paths.empty?
-      STDERR.puts "ERROR: At least one report is required."
-      STDERR.puts parser
+    unless @@read_context
+      STDERR.print "ERROR: At least one report is required.\n\n"
+      STDERR.print App.cli_usage
       exit(1)
     end
 
     # From this point onwards, all options have been parsed and evaluated.
     # Now the reports can be parsed.
 
-    reports = [] of Report
-    report_paths.each do |path|
-      begin
-        parse_reports(path).each do |report|
-          reports << report
-        end
-      rescue ex
-        STDERR.puts "ERROR: #{ex.message}"
-        exit(1)
-      end
-    end
-
     # Finally, deploy the visualization.
     deploy(
-      output_path: Path[output_path],
-      reports_by_category: reports.group_by { |report| report.category },
-      reports: reports,
-      commit_name: commit,
-      commit_url: commit_url,
-      commit_tz: commit_tz
+      output_path: Path[@@output_path],
+      reports_by_category: @@reports.group_by { |report| report.category },
+      reports: @@reports,
+      commit_name: @@commit,
+      commit_url: @@commit_url,
+      commit_tz: @@commit_tz
     )
   end
 
-  # This method parses the report from the given paths and returns an array of parsed reports.
-  #
-  # The method matches the report type using its filename.
-  def self.parse_reports(path : Path) : Array(Report)
+  def self.context_finished_callback(context : CLI::Context, argument : String) : Nil
+    @@read_context = true
+
+    # TODO: Allow silently failing if file doesn't exist.
+    context.as(Report.class).from_path(Path[argument]).each do |report|
+      @@reports << report
+    end
+  end
+
+  def self.find_report_type(path : String) : CLI::Context
     # For each `Report` subclass the `.is_candidate?` method is executed.
     # This method checks if the filepath implies it could possibly be this type of report.
     # For example, a surefire report starts with "TEST-" and ends with ".xml".
@@ -88,14 +83,16 @@ module App
     # the report visualizer has multiple reports which are incompatible.
     # In both cases, the tool immediately stops executing.
 
+    path = Path[path]
     candidate_count = 0
-    last_candidate : Report.class | Nil = nil
+    last_candidate : CLI::Context | Nil = nil
+    basename = path.basename
 
     {% begin %}
       {% for type in Report.subclasses %}
-        if {{type}}.is_candidate?(path.basename)
+        if {{type}}.is_candidate?(basename)
           candidate_count += 1
-          last_candidate = {{type}}
+          last_candidate = {{type}}.as(CLI::Context)
         end
       {% end %}
     {% end %}
@@ -103,7 +100,7 @@ module App
     raise ArgumentError.new("Could not find a candidate for report \"#{path}\"") unless last_candidate
     raise ArgumentError.new("Ambiguous report \"#{path}\" has multiple candidates") if candidate_count > 1
 
-    last_candidate.from_path(path)
+    last_candidate
   end
 
   # This method deploys the visualization.
@@ -123,7 +120,7 @@ module App
       {% ecr_file_extension_size = flag?("no_minify") ? 5 : 9 %}
       {% for file in run("./macros/list_files.cr", "template").lines %}
         {% if file.ends_with?(".ecr") %}
-          {% unless flag?("no_minify") == file.ends_with?(".min.ecr") %}
+          {% if flag?("no_minify") != file.ends_with?(".min.ecr") && !file.starts_with?("$") %}
             File.open(output_path / {{ file[..-ecr_file_extension_size] }}, "w") do |io|
               ECR.embed({{ "template/#{file.id}" }}, io)
             end

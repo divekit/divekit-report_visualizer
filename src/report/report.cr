@@ -12,6 +12,30 @@
 #
 #   This method should actually parse the report and return any amount of reports.
 abstract class Report
+  private module ReportClass
+    abstract def from_path(path : Path) : Enumerable(Report)
+    abstract def is_candidate?(filename : String) : Bool
+  end
+
+  # This macro makes every Report subclass extend the `ReportClass` module.
+  #
+  # This forces the Report subclasses to implement specific class-methods.
+  private macro inherited
+    extend ReportClass
+    extend CLI::Context
+  end
+
+  macro pattern(filename)
+    {% parts = filename.split('*') %}
+    {% filename.raise "Invalid pattern" if parts.size != 2 %}
+
+    def self.is_candidate?(filename : String) : Bool
+      filename.starts_with?({{ parts[0] }}) && filename.ends_with?({{ parts[1] }})
+    end
+
+    header {{ "#{parse_type(@type.name.stringify).names.last}-Report (#{filename}) arguments:" }}
+  end
+
   # The report status.
   #
   # Currently, there are only two possible values `Success` and `Failed`.
@@ -46,15 +70,15 @@ abstract class Report
   # filtering options and an indicator next to the test in the sidebar.
   abstract def status : Status
 
-  # Abstract method to create an html-based visualization of the current report.
-  abstract def to_html(io : IO) : Nil
+  # Abstract method to create a visualization of the current report.
+  abstract def render(io : IO) : Nil
 
   # This macro is run for every subclass of `Report`.
   # It is used to automatically define the `to_html` method.
   {% begin %}
     {% file_extension = flag?("no_minify") ? ".ecr" : ".min.ecr" %}
     private macro inherited
-      def to_html(io : IO) : Nil
+      def render(io : IO) : Nil
         ECR.embed(\\{{ "./template/reports/#{__FILE__[(__DIR__.size + 1)..-4].id}.html#{{{file_extension}}}" }}, io)
       end
     end

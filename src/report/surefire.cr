@@ -4,6 +4,8 @@ require "xml"
 #
 # XML Schema: https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd
 class Report::Surefire < Report
+  pattern "TEST-*.xml"
+
   def self.is_candidate?(filename : String) : Bool
     filename.starts_with?("TEST-") && filename.ends_with?(".xml")
   end
