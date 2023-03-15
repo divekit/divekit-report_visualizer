@@ -199,6 +199,18 @@
         background: var(--bg-view);
       }
 
+      /* Footer */
+
+      footer {
+        border-top: 2px dashed var(--danger-text);
+        background: var(--bg-content);
+        color: var(--danger-text);
+        font-weight: 600;
+        padding: 1rem;
+        text-align: center;
+        width: 100%;
+      }
+
       /* Header */
 
       header {
@@ -477,7 +489,7 @@
               <p class="title text-danger">
                 Praktikum endgültig nicht bestanden
               </p>
-            <% elsif success_count == reports.size %>
+            <% elsif success_count == reports.size && !incomplete %>
               <p class="title text-success">
                 Alle Tests sind gelungen
               </p>
@@ -530,7 +542,7 @@
 
         <main>
           <% reports.each do |report| %>
-            <article id="report<%= report.id %>" <%= "class=\"default\"" if default.same?(report) %>>
+            <article id="report-<%= report.id %>" <%= "class=\"default\"" if default.same?(report) %>>
               <% report.render(io) %>
             </article>
           <% end %>
@@ -547,6 +559,12 @@
         </main>
       </div>
     </div>
+
+    <% if incomplete %>
+      <footer>
+        Der Test konnte nicht ordnungsgemäß ausgeführt werden. Bitte kontaktieren Sie einen Administrator!
+      </footer>
+    <% end %>
   </body>
   <script>
     // Setup link highlighting

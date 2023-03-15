@@ -9,6 +9,7 @@ module App
   VERSION = "0.1.0"
 
   @@read_context = false
+  @@incomplete = false
 
   @@commit : String = "local"
   @@commit_url : String? = nil
@@ -60,14 +61,20 @@ module App
       reports: @@reports,
       commit_name: @@commit,
       commit_url: @@commit_url,
-      commit_tz: @@commit_tz
+      commit_tz: @@commit_tz,
+      incomplete: @@incomplete
     )
   end
 
   def self.context_finished_callback(context : CLI::Context, argument : String) : Nil
     @@read_context = true
 
-    # TODO: Allow silently failing if file doesn't exist.
+    unless File.file?(argument)
+      @@incomplete = true
+      STDERR.puts "WARN: File #{argument} does not exist!"
+      return
+    end
+
     context.as(Report.class).from_path(Path[argument]).each do |report|
       @@reports << report
     end
@@ -112,7 +119,8 @@ module App
                   reports : Array(Report),
                   commit_name : String,
                   commit_url : String?,
-                  commit_tz : Time)
+                  commit_tz : Time,
+                  incomplete : Bool)
     Dir.mkdir_p(output_path)
 
     # Render all ECR files and copy all static files.
