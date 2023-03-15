@@ -12,6 +12,14 @@
 #
 #   This method should actually parse the report and return any amount of reports.
 abstract class Report
+  @@sequence : Int32 = 0
+
+  # Creates a sequential id used for mapping each report to a unique id.
+  def self.create_sequential_id : Int32
+    @@sequence += 1
+    @@sequence
+  end
+
   private module ReportClass
     abstract def from_path(path : Path) : Enumerable(Report)
     abstract def is_candidate?(filename : String) : Bool
@@ -72,6 +80,9 @@ abstract class Report
 
   # Abstract method to create a visualization of the current report.
   abstract def render(io : IO) : Nil
+
+  # The unique identifier for this report.
+  getter id : Int32 { Report.create_sequential_id }
 
   # This macro is run for every subclass of `Report`.
   # It is used to automatically define the `to_html` method.
