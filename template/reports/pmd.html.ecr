@@ -1,0 +1,24 @@
+<% if @files.empty? %>
+  <div class="container">
+    <div class="subtitle text-success">
+      <b>Keine Regelbrüche gefunden ✨</b>
+    </div>
+  </div>
+<% else %>
+  <div class="subtitle text-danger">
+    <% violations_count = @files.sum(&.violations.size) %>
+    <b><%= violations_count %> <% if violations_count == 1 %>Regelbruch<% else %>Regelbrüche<% end %> gefunden</b>
+  </div>
+  <% @files.each_with_index do |file, fi| %>
+    <% file.violations.each_with_index do |violation, vi| %>
+      <section style="margin: 32px 0; display: block;">
+        <div style="margin-bottom: 4px;"><b>In <u><%= Path[file.filename].basename %>:<%= violation.beginline %>:<%= violation.begincolumn %></u></b></div>
+        <div><pre><code><% Helpers.stream_file_to_html(io, file.filename, violation.beginline, violation.begincolumn, violation.endline, violation.endcolumn) %></code></pre></div>
+        <div style="margin-top: 6px;"><b class="text-warn">Fehler: <% HTML.escape(violation.description, io) %></b></div>
+        <div><a href="<% HTML.escape(violation.externalInfoUrl, io) %>">Mehr Infos</a></div>
+      </section>
+      <% unless vi == (file.violations.size - 1) %><hr/><% end %>
+    <% end %>
+    <% unless fi == (@files.size - 1) %><hr/><% end %>
+  <% end %>
+<% end %>

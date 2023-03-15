@@ -65,6 +65,9 @@
         --warn-bg: #e5a50a;
         --danger-bg: #e01b24;
         --accent-bg: #3584e4;
+
+        --error-mark-bg: rgba(255,0,0,0.15);
+        --error-mark-text: #000;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -100,6 +103,9 @@
           --warn-bg: #cd9309;
           --danger-bg: #c01c28;
           --accent-bg: #3584e4;
+
+          --error-mark-bg: rgba(255,0,0,0.15);
+          --error-mark-text: #FFF;
         }
       }
 
@@ -155,6 +161,12 @@
 
       .text-dimmed {
         color: var(--text-dimmed);
+      }
+
+      mark.text-danger {
+        display: inline-block;
+        background-color: var(--error-mark-bg);
+        color: var(--error-mark-text);
       }
 
       .wrapper {
@@ -415,6 +427,11 @@
         background:	var(--danger-bg);
       }
 
+      nav a.is-fatal:before {
+        content: '\00d7';
+        color: var(--text);
+      }
+
       nav a.is-success:before {
         background:	var(--success-bg);
       }
@@ -505,7 +522,7 @@
 
               <h2 class="<%= category_class %>"><% HTML.escape(category, io) %></h2>
               <% category_reports.each do |report| %>
-                <a href="#report-<% HTML.escape(report.name, io) %>" <%= "class=\"is-success\"" if report.status.success? %>><% HTML.escape(report.name, io) %></a>
+                <a href="#report-<% HTML.escape(report.name, io) %>" <%= "class=\"is-fatal\"" if report.status.fatal? %><%= "class=\"is-success\"" if report.status.success? %>><% HTML.escape(report.name, io) %></a>
               <% end %>
             <% end %>
           </div>
@@ -514,7 +531,7 @@
         <main>
           <% reports.each do |report| %>
             <article id="report-<% HTML.escape(report.name, io) %>" <%= "class=\"default\"" if default.same?(report) %>>
-              <% report.to_html(io) %>
+              <% report.render(io) %>
             </article>
           <% end %>
           <article class="fallback">
