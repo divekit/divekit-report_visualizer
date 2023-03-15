@@ -27,7 +27,7 @@ module App
   option "-u URI", "--commit_url=URI", "Specifies the link to the current commit (default: none)" { |url| @@commit_url = url }
   option "-o PATH", "--output=PATH", "Specifies the path to deploy to (default: \"public\")" { |path| @@output_path = path }
   option "-t TIME", "--commit_time=TIME",
-         "Specifies the timestamp of the current commit, in ISO 8601 format (default: current local time)" do |time|
+    "Specifies the timestamp of the current commit, in ISO 8601 format (default: current local time)" do |time|
     @@commit_tz = Time.parse_iso8601(time)
   end
   option "-h", "--help", "Show this help"

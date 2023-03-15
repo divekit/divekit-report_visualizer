@@ -13,7 +13,7 @@ class Report::PMD < Report
 
   # A rule violation inside a `File#violations` array.
   record Violation, beginline : Int32, begincolumn : Int32, endline : Int32, endcolumn : Int32,
-         description : String, rule : String, ruleset : String, priority : Int32, externalInfoUrl : String do
+    description : String, rule : String, ruleset : String, priority : Int32, externalInfoUrl : String do
     include JSON::Serializable
   end
 

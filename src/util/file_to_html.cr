@@ -15,10 +15,10 @@ module Helpers
     last_copy_at : Int32 = 0
     string.each_with_index do |byte, index|
       str = case byte
-            when '&' then "&amp;"
-            when '<' then "&lt;"
-            when '>' then "&gt;"
-            when '"' then "&quot;"
+            when '&'  then "&amp;"
+            when '<'  then "&lt;"
+            when '>'  then "&gt;"
+            when '"'  then "&quot;"
             when '\'' then "&#39;"
             else
               nil
@@ -44,8 +44,7 @@ module Helpers
     begin_line : Int32,
     begin_column : Int32,
     end_line : Int32,
-    end_column : Int32,
-
+    end_column : Int32
   ) : Nil
     buffer = uninitialized UInt8[IO::DEFAULT_BUFFER_SIZE]
     current_line : Int32 = 1
