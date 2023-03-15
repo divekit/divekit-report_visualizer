@@ -18,7 +18,7 @@ module App
   @@reports = [] of Report
 
   header <<-TXT
-  Divekit Report Visualizer #{VERSION} #{ {{ `git log --pretty=format:'[%h] (%cs)' -n 1`.stringify }} }
+  Divekit Report Visualizer #{VERSION} #{{{ `git log --pretty=format:'[%h] (%cs)' -n 1`.stringify }}}
   Usage: divekit-rv [global arguments] <report-path> [report arguments] <report-path> [report arguments] ...
 
   Global arguments (affects whole program instead of just one file):
