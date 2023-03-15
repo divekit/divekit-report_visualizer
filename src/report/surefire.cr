@@ -6,6 +6,16 @@ require "xml"
 class Report::Surefire < Report
   pattern "TEST-*.xml"
 
+  @@category : String?
+
+  option "--category=NAME", "Overwrites the report category (default: extracted from classpath)" do |name|
+    @@category = name
+  end
+
+  def self.init_context : Nil
+    @@category = nil
+  end
+
   def self.is_candidate?(filename : String) : Bool
     filename.starts_with?("TEST-") && filename.ends_with?(".xml")
   end
@@ -28,32 +38,37 @@ class Report::Surefire < Report
 
     test_cases.map do |test|
       test_name = test["name"]
-      test_classname = test["classname"]
 
-      # Isolate category name.
-      #
-      # Surefire doesn't actually have a "test category".
-      # We only get a class path (ex. "org.example.ExampleClass.test01")
-      # Here, the category is the class the current test is directly located in (in this example, "ExampleClass").
-      name_offset = test_classname.rindex('.').not_nil!
-      classname_offset = test_classname.rindex('.', offset: name_offset - 1).not_nil!
-      category = test_classname[(classname_offset + 1)..(name_offset - 1)]
+      unless category = @@category
+        # Isolate category name.
+        #
+        # Surefire doesn't actually have a "test category".
+        # We only get a class path (ex. "org.example.ExampleClass.test01")
+        # Here, the category is the class the current test is directly located in (in this example, "ExampleClass").
+        test_classname = test["classname"]
+        name_offset = test_classname.rindex('.') || 0
+        classname_offset = test_classname.rindex('.', offset: name_offset - 1) if name_offset > 0
+        category = classname_offset ? test_classname[(classname_offset + 1)..(name_offset - 1)] : "No Category"
+      end
 
-      exception_message : String? = nil
-      exception_type : String? = nil
+      summary : String? = nil
+      message : String? = nil
 
-      # TODO: Tests can also contain other error nodes, like <failure/>, <rerunFailure/>, <skipped/> or <system-out/>
-      if error = test.xpath_node("./error")
-        exception_message = error.inner_text
-        exception_type = error["type"]
+      # NOTE: Currently, flaky errors are considered successful.
+      if node = test.xpath_node("./error")
+        summary = "#{node["message"]} (#{node["type"]})"
+        message = node.inner_text
+      elsif node = test.xpath_node("./skipped | ./failure")
+        summary = node["message"]
+        message = node.inner_text
       end
 
       Report::Surefire.new(
         name: test_name,
         category: category,
-        status: error ? Status::Failure : Status::Success,
-        exception_message: exception_message,
-        exception_type: exception_type,
+        status: message ? Status::Failure : Status::Success,
+        message: message,
+        summary: summary,
       ).as(Report)
     end
   end
@@ -61,9 +76,9 @@ class Report::Surefire < Report
   getter category : String
   getter name : String
   getter status : Status
-  getter exception_message : String?
-  getter exception_type : String?
+  getter message : String?
+  getter summary : String?
 
-  def initialize(@category : String, @name : String, @status : Status, @exception_message : String?, @exception_type : String?)
+  def initialize(@category : String, @name : String, @status : Status, @message : String?, @summary : String?)
   end
 end

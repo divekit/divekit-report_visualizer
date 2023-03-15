@@ -1,8 +1,8 @@
-<% if (exception_message = @exception_message) && (exception_type = @exception_type) %>
+<% if (message = @message) && (summary = @summary) %>
   <div class="subtitle text-danger">
-    <b>Fehler <% HTML.escape(exception_type, io) %></b>
+    <b><% HTML.escape(summary, io) %></b>
   </div>
-  <pre><code><% HTML.escape(exception_message, io) %></code></pre>
+  <pre><code><% HTML.escape(message, io) %></code></pre>
 <% else %>
   <div class="container">
     <div class="subtitle text-success">
