@@ -522,7 +522,7 @@
 
               <h2 class="<%= category_class %>"><% HTML.escape(category, io) %></h2>
               <% category_reports.each do |report| %>
-                <a href="#report-<% HTML.escape(report.name, io) %>" <%= "class=\"is-fatal\"" if report.status.fatal? %><%= "class=\"is-success\"" if report.status.success? %>><% HTML.escape(report.name, io) %></a>
+                <a href="#report-<%= report.id %>" <%= "class=\"is-fatal\"" if report.status.fatal? %><%= "class=\"is-success\"" if report.status.success? %>><% HTML.escape(report.name, io) %></a>
               <% end %>
             <% end %>
           </div>
@@ -530,7 +530,7 @@
 
         <main>
           <% reports.each do |report| %>
-            <article id="report-<% HTML.escape(report.name, io) %>" <%= "class=\"default\"" if default.same?(report) %>>
+            <article id="report<%= report.id %>" <%= "class=\"default\"" if default.same?(report) %>>
               <% report.render(io) %>
             </article>
           <% end %>
