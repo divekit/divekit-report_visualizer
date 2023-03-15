@@ -1,4 +1,3 @@
-require "html"
 require "xml"
 
 # The Surefire report format.

@@ -1,7 +1,6 @@
-require "html"
 require "json"
 
-# A custom report format allowing to use arbitrary html for a test.
+# A custom report format allowing to insert arbitrary content for a test.
 #
 # The reports must be an array of objects with the keys `name`, `category`, `status` and `content`.
 # `status` may only have the values `failure` or `success`.
