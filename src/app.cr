@@ -6,7 +6,7 @@ require "./report"
 module App
   extend CLI::Context
 
-  VERSION = "0.1.0"
+  VERSION = "0.2.0-dev"
 
   @@read_context = false
   @@incomplete = false
