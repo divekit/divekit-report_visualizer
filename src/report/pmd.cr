@@ -21,11 +21,13 @@ class Report::PMD < Report
   getter category : String
 
   @@category : String = "PMD"
-  @@split_rules : String? = nil
+  @@split_rules : Hash(String, String) = {} of String => String
+  @@default_report_name : String? = "PMD"
 
   def self.init_context : Nil
     @@category = "PMD"
-    @@split_rules = nil
+    @@split_rules = {} of String => String
+    @@default_report_name = "PMD"
   end
 
   patterns "*.pmd.json", "pmd.net.sourceforge.pmd.renderers.JsonRenderer"
@@ -33,9 +35,19 @@ class Report::PMD < Report
   option "--category=NAME", "Specifies the category the PMD report is put in (default: \"PMD\")" do |name|
     @@category = name
   end
-  option "--split_rules=RULE,RULE:Name...",
-    "Splits this file into one report for each specified rule (supports custom names using colon)" do |rules|
-    @@split_rules = rules
+  option "--split=RULE,RULE,...:NAME",
+    "Splits the specified rules into an own report with the given name" do |rule|
+    rules = (@@split_rules ||= {} of String => String)
+    name_separator = rule.index(':')
+    raise ArgumentError.new("No name given for split rule") unless name_separator && name_separator != 0 && name_separator < (rule.size - 1)
+    rule_name = rule[name_separator + 1, -1]
+    rule[0, name_separator - 1].split(',') do |ref|
+      @@split_rules[ref] = rule_name
+    end
+  end
+  option "--default-report=NAME",
+    "Specifies the default report name (default: \"PMD\", no default report if empty)" do |name|
+    @@default_report_name = name
   end
 
   def self.from_path(path : Path) : Enumerable(Report)
@@ -44,34 +56,31 @@ class Report::PMD < Report
       File.open(path) do |io|
         document = Report::PMD::Document.from_json(io)
         category = @@category
+        reports = {} of String? => Report::PMD
 
-        if split_rules = @@split_rules
-          rules = {} of String => Report::PMD
-
-          split_rules.split(',') do |rule|
-            rule_parts = rule.split(':', 2)
-            rule_name = (rule_parts.size == 2) ? rule_parts[1] : rule_parts[0]
-
-            rules[rule_parts[0]] = Report::PMD.new(category: category, name: rule_name, files: [] of ReportFile)
-          end
-
-          document.files.each do |file|
-            file.violations.each do |violation|
-              report = rules[violation.rule]?
-              next unless report
-              dest_file = report.@files.find(&.filename.same?(file.filename))
-              unless dest_file
-                dest_file = ReportFile.new(filename: file.filename, violations: [] of Violation)
-                report.@files << dest_file
-              end
-              dest_file.violations << violation
-            end
-          end
-
-          rules.map { |k, v| v.as(Report) }
-        else
-          [Report::PMD.new(category: category, name: "PMD", files: document.files)] of Report
+        if name = @@default_report_name
+          reports[nil] = Report::PMD.new(category: category, name: name, files: [] of ReportFile)
         end
+
+        @@split_rules.each do |ref, reportname|
+          reports[reportname] ||= Report::PMD.new(category: category, name: reportname, files: [] of ReportFile)
+        end
+
+        document.files.each do |file|
+          file.violations.each do |violation|
+            report_name = @@split_rules[violation.rule]?
+            report = reports[report_name]?
+            next unless report
+            dest_file = report.@files.find(&.filename.same?(file.filename))
+            unless dest_file
+              dest_file = ReportFile.new(filename: file.filename, violations: [] of Violation)
+              report.@files << dest_file
+            end
+            dest_file.violations << violation
+          end
+        end
+
+        reports.map { |k, v| v.as(Report) }
       end
     rescue ex
       STDERR.puts "Could not read #{path}: #{ex.message}"
