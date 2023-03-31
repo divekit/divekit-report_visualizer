@@ -28,7 +28,7 @@ class Report::PMD < Report
     @@split_rules = nil
   end
 
-  pattern "*.pmd.json"
+  patterns "*.pmd.json", "pmd.net.sourceforge.pmd.renderers.JsonRenderer"
 
   option "--category=NAME", "Specifies the category the PMD report is put in (default: \"PMD\")" do |name|
     @@category = name

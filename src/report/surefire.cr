@@ -4,7 +4,7 @@ require "xml"
 #
 # XML Schema: https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd
 class Report::Surefire < Report
-  pattern "TEST-*.xml"
+  patterns "TEST-*.xml"
 
   @@category : String?
 

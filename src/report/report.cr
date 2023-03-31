@@ -33,15 +33,27 @@ abstract class Report
     extend CLI::Context
   end
 
-  macro pattern(filename)
-    {% parts = filename.split('*') %}
-    {% filename.raise "Invalid pattern" if parts.size != 2 %}
+  macro patterns(*filenames)
+    {%
+      parts = filenames.map do |filename|
+        ret = filename.split('*')
+        filename.raise "Invalid pattern" unless ret.size == 1 || ret.size == 2
+        ret
+      end
+    %}
 
     def self.is_candidate?(filename : String) : Bool
-      filename.starts_with?({{ parts[0] }}) && filename.ends_with?({{ parts[1] }})
+      {% for filename_parts in parts %}
+        {% if filename_parts.size == 2 %}
+          return true if filename.starts_with?({{ filename_parts[0] }}) && filename.ends_with?({{ filename_parts[1] }})
+        {% else %}
+          return true if filename == {{ filename_parts[0] }}
+        {% end %}
+      {% end %}
+      false
     end
 
-    header {{ "#{parse_type(@type.name.stringify).names.last}-Report (#{filename}) arguments:" }}
+    header {{ "#{parse_type(@type.name.stringify).names.last}-Report (#{filenames.join(", ")}) arguments:" }}
   end
 
   # The report status.

@@ -39,7 +39,7 @@ class Report::Custom < Report
   @[JSON::Field]
   getter content : String
 
-  pattern "*.custom-test.json"
+  patterns "*.custom-test.json"
 
   def self.from_path(path : Path) : Enumerable(Report)
     # Read and parse XML document, exit wih error message if it is invalid XML
