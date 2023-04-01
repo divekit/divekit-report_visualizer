@@ -40,14 +40,14 @@ class Report::PMD < Report
     rules = (@@split_rules ||= {} of String => String)
     name_separator = rule.index(':')
     raise ArgumentError.new("No name given for split rule") unless name_separator && name_separator != 0 && name_separator < (rule.size - 1)
-    rule_name = rule[name_separator + 1, -1]
-    rule[0, name_separator - 1].split(',') do |ref|
+    rule_name = rule[name_separator + 1, rule.size - name_separator - 1]
+    rule[0, name_separator].split(',') do |ref|
       @@split_rules[ref] = rule_name
     end
   end
   option "--default-report=NAME",
     "Specifies the default report name (default: \"PMD\", no default report if empty)" do |name|
-    @@default_report_name = name
+    @@default_report_name = (name.empty? ? nil : name)
   end
 
   def self.from_path(path : Path) : Enumerable(Report)
