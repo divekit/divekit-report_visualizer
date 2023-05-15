@@ -1,0 +1,10 @@
+<%
+  JSON::Builder.new(io).tap do |builder|
+    builder.document do
+      reports
+        .each
+        .map { |report| {name: report.name, category: report.category, status: report.status} }
+        .to_json(builder)
+    end
+  end
+%>
