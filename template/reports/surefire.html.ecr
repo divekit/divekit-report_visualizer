@@ -1,8 +1,12 @@
-<% if (message = @message) && (summary = @summary) %>
+<% 
+  message = @message
+  summary = @summary
+%>
+<% if !@status.success? %>
   <span class="subtitle text-danger">
-    <b><% HTML.escape(summary, io) %></b>
+    <b><% if summary %><% HTML.escape(summary, io) %><% else %>Fehler<% end %></b>
   </span>
-  <pre><code><% HTML.escape(message, io) %></code></pre>
+  <pre><code><% if message %><% HTML.escape(message, io) %><% else %>Keine Beschreibung verfügbar<% end %></code></pre>
 <% else %>
   <div class="container">
     <div class="subtitle text-success">

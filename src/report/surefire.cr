@@ -45,10 +45,14 @@ class Report::Surefire < Report
         # Surefire doesn't actually have a "test category".
         # We only get a class path (ex. "org.example.ExampleClass.test01")
         # Here, the category is the class the current test is directly located in (in this example, "ExampleClass").
-        test_classname = test["classname"]
-        name_offset = test_classname.rindex('.') || 0
-        classname_offset = test_classname.rindex('.', offset: name_offset - 1) if name_offset > 0
-        category = classname_offset ? test_classname[(classname_offset + 1)..(name_offset - 1)] : "No Category"
+        test_classname = test["classname"]?
+        if test_classname
+          name_offset = test_classname.rindex('.') || 0
+          classname_offset = test_classname.rindex('.', offset: name_offset - 1) if name_offset > 0
+          category = classname_offset ? test_classname[(classname_offset + 1)..(name_offset - 1)] : "No Category"
+        else
+          category = "nil"
+        end
       end
 
       summary : String? = nil
@@ -56,10 +60,11 @@ class Report::Surefire < Report
 
       # NOTE: Currently, flaky errors are considered successful.
       if node = test.xpath_node("./error")
-        summary = "#{node["message"]} (#{node["type"]})"
+        tmp = node["message"]?
+        summary = tmp ? "#{tmp} (#{node["type"]})" : node["type"]
         message = node.inner_text
       elsif node = test.xpath_node("./skipped | ./failure")
-        summary = node["message"]
+        summary = node["message"]?
         message = node.inner_text
       end
 
