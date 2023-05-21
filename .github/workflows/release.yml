@@ -1,0 +1,36 @@
+on:
+  release:
+    types: [ prereleased, published ]
+jobs:
+  test:
+    env:
+      ARCH: x86_64-musl
+      ARCH_CMD: linux64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download source
+        uses: actions/checkout@v3
+
+      - name: Setup Alpine
+        uses: jirutka/setup-alpine@v1
+        with:
+          branch: edge
+          packages: >
+            crystal
+            shards
+            libxml2-static
+            libxml2-dev
+            xz-static
+            xz-dev
+            zlib-static
+            zlib-dev
+
+      - name: Build divekit-rv
+        run: |
+          shards build --static --release --production
+        shell: alpine.sh {0}
+
+      - name: Upload Release Asset
+        run: gh release upload ${{ github.event.release.tag_name }} bin/divekit-rv
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
