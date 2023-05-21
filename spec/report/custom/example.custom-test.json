@@ -1,0 +1,20 @@
+[
+  {
+    "name": "first test",
+    "category": "test-testing",
+    "status": "success",
+    "content": ""
+  },
+  {
+    "name": "second test",
+    "category": "test-testing",
+    "status": "failure",
+    "content": "Gentlemen, welcome to Test Club. The first rule of Test Club is: You do not talk about Test Club. The second rule of Test Club is: YOU DO NOT. TALK. ABOUT TEST CLUB!"
+  },
+  {
+    "name": "third test",
+    "category": "different category",
+    "status": "fatal",
+    "content": "<b>TEST!!!</b>"
+  }
+]

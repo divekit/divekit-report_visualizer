@@ -1,0 +1,61 @@
+{
+  "formatVersion": 0,
+  "pmdVersion": "6.54.0",
+  "timestamp": "2023-03-02T05:06:42.618+01:00",
+  "files": [
+    {
+      "filename": "./Example.java",
+      "violations": [
+        {
+          "beginline": 3,
+          "begincolumn": 19,
+          "endline": 8,
+          "endcolumn": 1,
+          "description": "All methods are static.  Consider using a utility class instead. Alternatively, you could add a private constructor or make the class abstract to silence this warning.",
+          "rule": "UseUtilityClass",
+          "ruleset": "Design",
+          "priority": 3,
+          "externalInfoUrl": "https://pmd.github.io/pmd-6.54.0/pmd_rules_java_design.html#useutilityclass"
+        },
+        {
+          "beginline": 3,
+          "begincolumn": 8,
+          "endline": 8,
+          "endcolumn": 1,
+          "description": "Avoid short class names like Main",
+          "rule": "ShortClassName",
+          "ruleset": "Code Style",
+          "priority": 4,
+          "externalInfoUrl": "https://pmd.github.io/pmd-6.54.0/pmd_rules_java_codestyle.html#shortclassname"
+        }
+      ]
+    },
+    {
+      "filename": "../../some/long/path/to/some/File.java",
+      "violations": [
+        {
+          "beginline": 1,
+          "begincolumn": 9,
+          "endline": 1,
+          "endcolumn": 47,
+          "description": "Package name contains upper case characters",
+          "rule": "PackageCase",
+          "ruleset": "Code Style",
+          "priority": 3,
+          "externalInfoUrl": "https://pmd.github.io/pmd-6.54.0/pmd_rules_java_codestyle.html#packagecase"
+        },
+        {
+          "beginline": 1,
+          "begincolumn": 9,
+          "endline": 1,
+          "endcolumn": 47,
+          "description": "Package name contains upper case characters",
+          "rule": "PackageCase",
+          "ruleset": "Code Style",
+          "priority": 3,
+          "externalInfoUrl": "https://pmd.github.io/pmd-6.54.0/pmd_rules_java_codestyle.html#packagecase"
+        }
+      ]
+    }
+  ]
+}

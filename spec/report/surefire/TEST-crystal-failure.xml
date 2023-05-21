@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<testsuite tests="1" skipped="0" errors="1" failures="0" time="0.000324535" timestamp="2023-03-15T13:41:26Z" hostname="toolbox">
+  <testcase file="/var/home/blobcodes/Projekte/BlobCodes/mangaba/spec/script_spec.cr" classname="spec.script_spec" name="Int32 does something else" time="1.2754e-5">
+    <failure message="Expected: 3
+     got: 2">/usr/share/crystal/src/spec/methods.cr:82:5 in &#39;fail&#39;
+/usr/share/crystal/src/spec/expectations.cr:460:9 in &#39;should&#39;
+spec/script_spec.cr:7:5 in &#39;-&gt;&#39;
+/usr/share/crystal/src/spec/example.cr:45:13 in &#39;internal_run&#39;
+/usr/share/crystal/src/spec/example.cr:33:16 in &#39;run&#39;
+/usr/share/crystal/src/spec/context.cr:18:23 in &#39;internal_run&#39;
+/usr/share/crystal/src/spec/context.cr:345:7 in &#39;run&#39;
+/usr/share/crystal/src/spec/context.cr:18:23 in &#39;internal_run&#39;
+/usr/share/crystal/src/spec/context.cr:158:7 in &#39;run&#39;
+/usr/share/crystal/src/spec/dsl.cr:220:7 in &#39;-&gt;&#39;
+/usr/share/crystal/src/crystal/at_exit_handlers.cr:14:19 in &#39;run&#39;
+/usr/share/crystal/src/crystal/main.cr:50:14 in &#39;exit&#39;
+/usr/share/crystal/src/crystal/main.cr:45:5 in &#39;main&#39;
+/usr/share/crystal/src/crystal/main.cr:127:3 in &#39;main&#39;
+/lib64/libc.so.6 in &#39;??&#39;
+/lib64/libc.so.6 in &#39;__libc_start_main&#39;
+/var/home/blobcodes/.cache/crystal/crystal-run-spec.tmp in &#39;_start&#39;
+???</failure>
+  </testcase>
+</testsuite>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<testsuite tests="1" skipped="0" errors="0" failures="1" time="0.000324535" timestamp="2023-03-15T13:41:26Z">
+  <testcase name="Testcase with minimal information still passing the XML specification" time="1.2754e-5">
+    <failure></failure>
+  </testcase>
+</testsuite>
