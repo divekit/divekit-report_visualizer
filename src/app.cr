@@ -6,7 +6,7 @@ require "./report"
 module App
   extend CLI::Context
 
-  VERSION = "0.3.0-dev"
+  VERSION = {{ `shards version`.stringify }}
 
   @@read_context = false
   @@incomplete = false
