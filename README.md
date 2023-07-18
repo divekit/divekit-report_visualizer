@@ -13,7 +13,7 @@ shards build --release --production
 
 Optionally, you can add the `-Dno_minify` compile-time flag to prevent minifying the output:
 ```bash
-shards build --release --production --Dno_minify
+shards build --release --production -Dno_minify
 ```
 
 After running any of these commands, the `divekit-rv` tool should be located inside the `bin/` directory.
@@ -54,7 +54,9 @@ Surefire-Report ("TEST-*.xml") arguments:
 
 ## Development
 
-TODO: Write development instructions here
+Before trying to work on this project, please read the file `HACKING.md` included in this repository. It explains the structure of this project and why certain design decisions were made.
+
+Before committing or creating a pull request, please note that all commits are checked against the crystal formatter (~> `crystal tool format`) and the included unit tests using CI.
 
 ## Contributing
 
