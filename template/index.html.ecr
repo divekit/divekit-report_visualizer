@@ -486,8 +486,11 @@
           <div class="header-left">
             <p class="text-dimmed">
               <!-- Die hier angezeigte Zeit sollte optimalerweise der Commit-Zeit entsprechen und nicht der Generierungs-Zeit -->
-              Report vom <time datetime="<%= commit_tz.to_rfc3339 %>"><%= commit_tz.to_s("%d.%m.%Y um %R (%^Z)") %></time>, <span>Commit&nbsp;<a href="<%= commit_url %>"><% HTML.escape(commit_name, io) %></a></span>
+              Report vom <time datetime="<%= commit_tz.to_rfc3339 %>"><%= commit_tz.to_s("%d.%m.%Y um %R (%^Z)") %></time>,
+                <span>Commit&nbsp;<a href="<%= commit_url %>"><% HTML.escape(commit_name, io) %></a></span>,
+                <a href="maven.log" target="_blank">Maven Log</a>
             </p>
+
 
             <% if is_fatal %>
               <p class="title text-danger">
@@ -566,7 +569,7 @@
 
     <% if incomplete %>
       <footer>
-        Der Test konnte nicht ordnungsgemäß ausgeführt werden. Bitte kontaktieren Sie einen Administrator!
+        Build fehlgeschlagen. Konsultieren Sie das Maven-Log oder kontaktieren Sie einen Administrator.
       </footer>
     <% end %>
   </body>
