@@ -24,7 +24,10 @@ jobs:
             xz-dev
             zlib-static
             zlib-dev
-            libgc-static
+
+      - name: Install missing static dependencies
+        run: apk add --no-cache libgc-static
+        shell: alpine.sh {0}
 
       - name: Build divekit-rv
         run: |
@@ -34,4 +37,4 @@ jobs:
       - name: Upload Release Asset
         run: gh release upload ${{ github.event.release.tag_name }} bin/divekit-rv
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
