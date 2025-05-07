@@ -1,40 +1,28 @@
+name: Build and Upload Release Binary
+
 on:
   release:
-    types: [ prereleased, published ]
+    types: [ published ]
+
 jobs:
-  test:
-    env:
-      ARCH: x86_64-musl
-      ARCH_CMD: linux64
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Download source
+      - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Setup Alpine
-        uses: jirutka/setup-alpine@v1
-        with:
-          branch: edge
-          packages: >
-            crystal
-            shards
-            libxml2-static
-            libxml2-dev
-            xz-static
-            xz-dev
-            zlib-static
-            zlib-dev
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgc-dev libxml2-dev liblzma-dev
 
-      - name: Install missing static dependencies
-        run: apk add --no-cache libgc-static
-        shell: alpine.sh {0}
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
 
       - name: Build divekit-rv
-        run: |
-          shards build --static --release --production
-        shell: alpine.sh {0}
+        run: shards build --release
 
-      - name: Upload Release Asset
-        run: gh release upload ${{ github.event.release.tag_name }} bin/divekit-rv
+      - name: Upload binary
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bin/divekit-rv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
