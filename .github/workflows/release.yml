@@ -24,6 +24,7 @@ jobs:
             xz-dev
             zlib-static
             zlib-dev
+            libgc-static
 
       - name: Build divekit-rv
         run: |
